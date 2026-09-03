@@ -12,6 +12,9 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { ProductItem, CartItem, LanguageMode, FreshnessState } from '../types';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Card } from './ui/card';
 
 interface ProductCardsListProps {
   products: ProductItem[];
@@ -65,39 +68,45 @@ export const ProductCardsList: React.FC<ProductCardsListProps> = ({
     switch (freshness) {
       case 'CONFIRMED':
         return (
-          <span
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/90 text-emerald-300 border border-emerald-600/40 shadow-xs"
+          <Badge
+            variant="success"
+            className="text-[9px] py-0.5 px-2 font-bold flex items-center gap-1 shadow-xs max-w-[130px] truncate"
             title={note || 'Verified via ONDC API recently'}
           >
-            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-            <span>CONFIRMED (உறுதி செய்யப்பட்டது)</span>
-          </span>
+            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+            <span className="truncate">CONFIRMED</span>
+          </Badge>
         );
       case 'RECENT':
         return (
-          <span
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/90 text-cyan-300 border border-cyan-600/40 shadow-xs"
+          <Badge
+            variant="sky"
+            className="text-[9px] py-0.5 px-2 font-bold flex items-center gap-1 shadow-xs max-w-[130px] truncate"
             title={note || 'Updated in last few hours'}
           >
-            <Clock className="w-3 h-3 text-cyan-400" />
-            <span>RECENT (புதியது)</span>
-          </span>
+            <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+            <span className="truncate">RECENT</span>
+          </Badge>
         );
       case 'STALE':
         return (
-          <span
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/90 text-amber-300 border border-amber-600/40 shadow-xs"
+          <Badge
+            variant="default"
+            className="text-[9px] py-0.5 px-2 font-bold flex items-center gap-1 shadow-xs max-w-[130px] truncate"
             title={note || 'Last confirmed >1 day ago'}
           >
-            <AlertCircle className="w-3 h-3 text-amber-400" />
-            <span>STALE (பழைய தகவல்)</span>
-          </span>
+            <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />
+            <span className="truncate">STALE</span>
+          </Badge>
         );
       case 'OOS':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/90 text-rose-300 border border-rose-600/40 shadow-xs">
-            <span>SOLD OUT (தீர்ந்துவிட்டது)</span>
-          </span>
+          <Badge
+            variant="destructive"
+            className="text-[9px] py-0.5 px-2 font-bold flex items-center gap-1 shadow-xs"
+          >
+            <span>SOLD OUT</span>
+          </Badge>
         );
       default:
         return null;
@@ -191,9 +200,9 @@ export const ProductCardsList: React.FC<ProductCardsListProps> = ({
             const qty = getCartQuantity(item.id);
 
             return (
-              <div
+              <Card
                 key={item.id}
-                className="bg-[#141418]/90 rounded-2xl border border-neutral-800/90 shadow-xl hover:shadow-2xl hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden group backdrop-blur-md"
+                className="bg-[#141418]/90 rounded-2xl border-neutral-800/90 shadow-xl hover:shadow-2xl hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden group backdrop-blur-md"
                 id={`product-card-${item.id}`}
               >
                 <div>
@@ -273,14 +282,16 @@ export const ProductCardsList: React.FC<ProductCardsListProps> = ({
 
                   {/* Add / Quantity Buttons */}
                   {qty === 0 ? (
-                    <button
+                    <Button
+                      variant="default"
+                      size="sm"
                       onClick={() => onAddToCart(item)}
-                      className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 active:scale-95 text-stone-950 font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-md shadow-orange-950/30 flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-2 text-xs font-bold gap-1.5 shadow-md shadow-orange-950/30"
                       id={`add-to-cart-btn-${item.id}`}
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>கூடையில் சேர் (Add)</span>
-                    </button>
+                    </Button>
                   ) : (
                     <div className="flex items-center bg-[#1A1A20] rounded-xl p-1 border border-neutral-700">
                       <button
@@ -303,7 +314,7 @@ export const ProductCardsList: React.FC<ProductCardsListProps> = ({
                     </div>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>

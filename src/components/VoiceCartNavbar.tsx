@@ -110,37 +110,38 @@ export const VoiceCartNavbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Navigation Tabs for Modes */}
-        <nav className="flex items-center gap-1 bg-[#18181C] p-1 rounded-xl border border-neutral-800" id="primary-nav-tabs">
+        <nav className="flex items-center gap-1 bg-[#18181C] p-1 rounded-xl border border-neutral-800 overflow-x-auto scrollbar-none shrink-0" id="primary-nav-tabs">
           <button
             onClick={() => onTabChange('chat')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'chat'
                 ? 'bg-[#25252A] text-amber-300 shadow-sm border border-neutral-700'
                 : 'text-neutral-400 hover:text-neutral-200 hover:bg-[#202024]'
             }`}
             id="tab-chat-button"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>குரல் அரட்டை (Voice Chat)</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="hidden xl:inline">குரல் அரட்டை (Voice Chat)</span>
+            <span className="xl:hidden">குரல் அரட்டை</span>
           </button>
 
           <button
             onClick={() => onTabChange('whatsapp')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'whatsapp'
                 ? 'bg-[#25252A] text-emerald-400 shadow-sm border border-neutral-700'
                 : 'text-neutral-400 hover:text-neutral-200 hover:bg-[#202024]'
             }`}
             id="tab-whatsapp-button"
           >
-            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span className="hidden sm:inline">WhatsApp முகவர்</span>
             <span className="sm:hidden">WhatsApp</span>
           </button>
 
           <button
             onClick={() => onTabChange('ondc')}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'ondc'
                 ? 'bg-[#25252A] text-teal-300 shadow-sm border border-neutral-700'
                 : 'text-neutral-400 hover:text-neutral-200 hover:bg-[#202024]'
@@ -148,14 +149,14 @@ export const VoiceCartNavbar: React.FC<NavbarProps> = ({
             id="tab-ondc-button"
             title="ONDC Beckn Protocol Inspector"
           >
-            <Code className="w-3.5 h-3.5 text-teal-400" />
+            <Code className="w-3.5 h-3.5 text-teal-400 shrink-0" />
             <span className="hidden lg:inline">ONDC Beckn</span>
             <span className="lg:hidden">ONDC</span>
           </button>
 
           <button
             onClick={() => onTabChange('metrics')}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'metrics'
                 ? 'bg-[#25252A] text-cyan-300 shadow-sm border border-neutral-700'
                 : 'text-neutral-400 hover:text-neutral-200 hover:bg-[#202024]'
@@ -163,19 +164,19 @@ export const VoiceCartNavbar: React.FC<NavbarProps> = ({
             id="tab-metrics-button"
             title="Observability & Health Dashboard"
           >
-            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+            <Activity className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             <span className="hidden lg:inline">கண்காணிப்பு</span>
             <span className="lg:hidden">KPIs</span>
           </button>
         </nav>
 
         {/* Right Tools: Language, Sound, Cart */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Language Selector */}
-          <div className="flex items-center bg-[#18181C] rounded-lg p-0.5 border border-neutral-800 text-xs">
+          <div className="flex items-center bg-[#18181C] rounded-lg p-0.5 border border-neutral-800 text-xs shrink-0">
             <button
               onClick={() => onLanguageChange('ta')}
-              className={`px-2 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+              className={`px-2 py-1 rounded-md font-semibold transition-colors cursor-pointer shrink-0 ${
                 language === 'ta'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                   : 'text-neutral-400 hover:text-neutral-200'
@@ -187,7 +188,7 @@ export const VoiceCartNavbar: React.FC<NavbarProps> = ({
             </button>
             <button
               onClick={() => onLanguageChange('tanglish')}
-              className={`px-2 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+              className={`px-2 py-1 rounded-md font-semibold transition-colors cursor-pointer shrink-0 ${
                 language === 'tanglish'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                   : 'text-neutral-400 hover:text-neutral-200'
@@ -199,7 +200,7 @@ export const VoiceCartNavbar: React.FC<NavbarProps> = ({
             </button>
             <button
               onClick={() => onLanguageChange('en')}
-              className={`px-1.5 py-1 rounded-md font-semibold transition-colors cursor-pointer hidden sm:inline ${
+              className={`px-1.5 py-1 rounded-md font-semibold transition-colors cursor-pointer hidden sm:inline shrink-0 ${
                 language === 'en'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                   : 'text-neutral-400 hover:text-neutral-200'
@@ -214,7 +215,7 @@ export const VoiceCartNavbar: React.FC<NavbarProps> = ({
           {/* Sound Read-Aloud Toggle */}
           <button
             onClick={onToggleSound}
-            className={`p-2 rounded-lg border transition-colors cursor-pointer ${
+            className={`p-2 rounded-lg border transition-colors cursor-pointer shrink-0 ${
               soundEnabled
                 ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
                 : 'bg-[#18181C] text-neutral-500 border-neutral-800 hover:text-neutral-300'
@@ -222,19 +223,19 @@ export const VoiceCartNavbar: React.FC<NavbarProps> = ({
             title={soundEnabled ? 'குரல் வாசிப்பு இயக்கத்தில் உள்ளது' : 'குரல் வாசிப்பு முடக்கப்பட்டுள்ளது'}
             id="toggle-sound-btn"
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4 shrink-0" /> : <VolumeX className="w-4 h-4 shrink-0" />}
           </button>
 
           {/* Cart Trigger */}
           <button
             onClick={onOpenCart}
-            className="relative flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 active:scale-95 text-stone-950 font-bold px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-md shadow-orange-950/40 cursor-pointer"
+            className="relative flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 active:scale-95 text-stone-950 font-bold px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-md shadow-orange-950/40 cursor-pointer shrink-0"
             id="open-cart-btn"
           >
-            <ShoppingBag className="w-4 h-4" />
+            <ShoppingBag className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">கூடை</span>
             {cartCount > 0 && (
-              <span className="ml-1 bg-stone-950 text-amber-300 font-extrabold text-[11px] w-5 h-5 rounded-full flex items-center justify-center border border-amber-400/50 shadow-xs">
+              <span className="ml-1 bg-stone-950 text-amber-300 font-extrabold text-[11px] w-5 h-5 rounded-full flex items-center justify-center border border-amber-400/50 shadow-xs shrink-0">
                 {cartCount}
               </span>
             )}

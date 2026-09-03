@@ -16,6 +16,10 @@ import {
 } from 'lucide-react';
 import { CartItem, Order, LanguageMode } from '../types';
 import { speakText, soundEffects } from '../utils/speechSynthesis';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Card, CardContent } from './ui/card';
+import { Separator } from './ui/separator';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -239,27 +243,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             )}
 
             {/* Merchant Info */}
-            <div className="bg-[#18181D] rounded-xl p-3 border border-neutral-800 text-xs">
+            <Card className="bg-[#151824] p-3 border-neutral-800 text-xs shadow-xs">
               <div className="flex items-center justify-between font-bold text-[#F3F4F6]">
                 <span className="flex items-center gap-1.5">
                   <Building className="w-3.5 h-3.5 text-amber-400" />
                   <span>{primaryMerchant}</span>
                 </span>
-                <span className="text-[10px] text-emerald-300 font-semibold bg-emerald-950/80 border border-emerald-600/40 px-2 py-0.5 rounded-md">
+                <Badge variant="ondc" className="text-[10px]">
                   ONDC Verified
-                </span>
+                </Badge>
               </div>
               <div className="text-neutral-400 mt-1">
                 டெலிவரி முகவரி: வீடு எண் 42, {deliveryLocality}, கோவை
               </div>
-            </div>
+            </Card>
 
             {/* Cart Items List */}
             <div className="space-y-2.5">
               {cartItems.map((item) => (
-                <div
+                <Card
                   key={item.product.id}
-                  className="flex items-center justify-between p-3 rounded-xl border border-neutral-800 bg-[#1A1A22]"
+                  className="flex items-center justify-between p-3 border-neutral-800/90 bg-[#161928] shadow-xs"
                 >
                   <div className="flex-1 min-w-0 pr-3">
                     <div className="flex items-center gap-1.5">
@@ -274,10 +278,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </div>
 
                   {/* Quantity Controller */}
-                  <div className="flex items-center bg-[#121216] rounded-lg p-0.5 border border-neutral-700 shrink-0">
+                  <div className="flex items-center bg-[#10121D] rounded-lg p-0.5 border border-neutral-800 shrink-0">
                     <button
                       onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
-                      className="w-6 h-6 rounded-md bg-[#22222B] text-neutral-300 hover:bg-[#2C2C36] flex items-center justify-center font-bold text-xs cursor-pointer"
+                      className="w-6 h-6 rounded-md bg-[#1B1E30] text-neutral-300 hover:bg-[#252A42] flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
                     >
                       <Minus className="w-3 h-3" />
                     </button>
@@ -286,18 +290,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </span>
                     <button
                       onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
-                      className="w-6 h-6 rounded-md bg-gradient-to-r from-amber-500 to-orange-600 text-stone-950 flex items-center justify-center font-bold text-xs cursor-pointer"
+                      className="w-6 h-6 rounded-md bg-gradient-to-r from-amber-500 to-orange-600 text-stone-950 flex items-center justify-center font-bold text-xs cursor-pointer shadow-xs"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
 
             {/* Bill Details (Section 8.3 Exact Spec) */}
-            <div className="bg-[#18181D] rounded-xl p-3.5 border border-neutral-800 space-y-2 text-xs">
-              <div className="font-display font-bold text-[#F3F4F6] pb-1 border-b border-neutral-800">
+            <Card className="bg-[#151824] p-3.5 border-neutral-800 space-y-2 text-xs shadow-xs">
+              <div className="font-display font-bold text-[#F3F4F6] pb-1 border-b border-neutral-800/80">
                 கட்டண விவரம் (Bill Breakdown)
               </div>
               <div className="flex justify-between text-neutral-400">
@@ -316,11 +320,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span>ONDC வசதிக்கட்டணம் (Convenience Fee)</span>
                 <span className="font-semibold text-neutral-200">₹{convenienceFee}</span>
               </div>
-              <div className="pt-2 border-t border-neutral-800 flex justify-between font-bold text-sm text-[#F3F4F6]">
+              <Separator />
+              <div className="pt-1 flex justify-between font-bold text-sm text-[#F3F4F6]">
                 <span>மொத்தத் தொகை (TOTAL)</span>
                 <span className="text-amber-400 font-display text-base">₹{total}</span>
               </div>
-            </div>
+            </Card>
 
             {/* Payment Method Selection (Section 5 Spec: UPI default or COD with Token) */}
             <div className="space-y-2">
@@ -426,10 +431,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         {/* Drawer Bottom Actions */}
         {cartItems.length > 0 && (
           <div className="p-4 bg-[#18181D] border-t border-neutral-800 sticky bottom-0 space-y-2">
-            <button
+            <Button
+              variant="default"
+              size="lg"
               onClick={() => handlePay(false)}
               disabled={isProcessingPayment}
-              className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 active:scale-98 text-stone-950 rounded-xl font-bold text-sm shadow-xl shadow-orange-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full h-12 text-stone-950 font-bold text-sm shadow-xl shadow-orange-950/40 flex items-center justify-center gap-2 rounded-xl"
               id="pay-upi-button"
             >
               {isProcessingPayment ? (
@@ -447,16 +454,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </span>
                 </>
               )}
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onClearCart}
-              className="w-full py-1.5 text-neutral-400 hover:text-neutral-200 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+              className="w-full text-neutral-400 hover:text-neutral-200 text-xs font-semibold flex items-center justify-center gap-1.5"
               id="clear-cart-button"
             >
-              <Trash2 className="w-3 h-3" />
+              <Trash2 className="w-3.5 h-3.5" />
               <span>கூடையை காலியாக்கு (Clear Cart)</span>
-            </button>
+            </Button>
           </div>
         )}
       </div>

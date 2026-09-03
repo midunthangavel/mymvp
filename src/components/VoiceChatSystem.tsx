@@ -39,6 +39,8 @@ import {
   ChevronRight,
   Layers,
   ArrowRight,
+  Crosshair,
+  Loader2,
 } from 'lucide-react';
 import {
   ChatMessage,
@@ -51,6 +53,10 @@ import {
 import { ChatMapCard } from './ChatMapCard';
 import { speakText, soundEffects } from '../utils/speechSynthesis';
 import { MOCK_PRODUCTS } from '../data/mockData';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Card, CardContent } from './ui/card';
+import { Separator } from './ui/separator';
 
 interface VoiceChatSystemProps {
   currentLocality: string;
@@ -97,6 +103,74 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
   const [favoriteSaved, setFavoriteSaved] = useState<Record<string, boolean>>({
     'ABC Hotel (Sri Krishna Bhavan)': true,
   });
+  const [isLocatingUser, setIsLocatingUser] = useState<boolean>(false);
+  const [likedProductIds, setLikedProductIds] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('voicecart_liked_product_ids');
+      return saved ? new Set(JSON.parse(saved)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
+
+  const toggleLikeProduct = (product: ProductItem) => {
+    setLikedProductIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(product.id)) {
+        next.delete(product.id);
+        showToast(`Removed ${product.name} from likes`);
+      } else {
+        next.add(product.id);
+        showToast(`❤️ Liked ${product.name}!`);
+        soundEffects.playTone(680, 0.08);
+      }
+      try {
+        localStorage.setItem('voicecart_liked_product_ids', JSON.stringify(Array.from(next)));
+      } catch {}
+      return next;
+    });
+  };
+
+  // Check Current GPS Location
+  const handleCheckCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      showToast('Geolocation is not supported by your browser');
+      return;
+    }
+    setIsLocatingUser(true);
+    showToast('Checking your GPS location...');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        try {
+          const res = await fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
+          if (res.ok) {
+            const data = await res.json();
+            const detectedLoc = data.locality || data.city || 'Your Location';
+            onLocalityChange(detectedLoc);
+            showToast(`📍 Location updated: ${data.displayName || detectedLoc}`);
+            handleSendMessage(`Show nearby stores and products around ${detectedLoc}`);
+          } else {
+            onLocalityChange('Current Location');
+            showToast(`📍 Location detected: [${lat.toFixed(3)}, ${lng.toFixed(3)}]`);
+            handleSendMessage(`Show stores and products around my current location`);
+          }
+        } catch {
+          onLocalityChange('Current Location');
+          showToast(`📍 Location detected: [${lat.toFixed(3)}, ${lng.toFixed(3)}]`);
+          handleSendMessage(`Show stores and products around my current location`);
+        } finally {
+          setIsLocatingUser(false);
+        }
+      },
+      (err) => {
+        setIsLocatingUser(false);
+        showToast('Please allow browser location access to check nearby products');
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
+    );
+  };
 
   // Live dual clocks (Chennai & Riyadh matching user's image 1 & 2)
   const [chennaiTime, setChennaiTime] = useState<string>('');
@@ -619,11 +693,19 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
       )}
 
       {/* 1. Mobile Status Bar (Simulated Phone Status Bar matching user's Image 1 & 2) */}
-      <div className="px-4 pt-2.5 pb-1 flex items-center justify-between text-[11px] font-mono text-neutral-400 border-b border-white/[0.04] shrink-0 bg-[#0B0C10] z-30">
-        <div className="font-semibold text-neutral-200 tracking-tight pl-1">
-          {simpleMobileTime}
+      <div className="px-3.5 pt-2 pb-1 flex items-center justify-between text-[11px] font-mono text-neutral-400 border-b border-white/[0.04] shrink-0 bg-[#0B0C10] z-30">
+        <div className="flex items-center gap-2 font-semibold text-neutral-200 tracking-tight pl-0.5">
+          <span>{simpleMobileTime}</span>
+          {/* Mobile Dual Clocks (Chennai & Riyadh) positioned safely in status bar with no overlap */}
+          <div className="flex min-[560px]:hidden items-center gap-1.5 text-[9px] font-mono bg-[#141B28] border border-sky-900/50 rounded-full px-2 py-0.5 shadow-xs">
+            <span className="text-sky-400 font-bold">MAA</span>
+            <span className="text-sky-100 font-semibold">{chennaiTime ? chennaiTime.replace(/\s*[ap]m/i, '') : '6:20'}</span>
+            <span className="text-neutral-500">•</span>
+            <span className="text-sky-400 font-bold">RUH</span>
+            <span className="text-sky-100 font-semibold">{riyadhTime ? riyadhTime.replace(/\s*[ap]m/i, '') : '3:50'}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-[10px] font-bold text-neutral-300">5G</span>
           <Wifi className="w-3.5 h-3.5 text-neutral-300" />
           {/* Battery 83% from image 1 */}
@@ -637,9 +719,9 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
       </div>
 
       {/* 2. Top Navigation Bar (matching user's Image 1, 2, & 3) */}
-      <header className="px-2.5 py-1.5 bg-[#0E1017] border-b border-neutral-800/80 flex items-center justify-between gap-1.5 shrink-0 z-30 shadow-md">
-        {/* Left: Sparkle Brand Icon */}
-        <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+      <header className="px-3 py-1.5 bg-[#0E1017] border-b border-neutral-800/80 flex items-center justify-between gap-2 shrink-0 z-30 shadow-md overflow-hidden">
+        {/* Left: Sparkle Brand Icon & Location */}
+        <div className="flex items-center gap-2 shrink-0 min-w-0">
           <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-900 via-indigo-700 to-sky-600 border border-purple-400/40 flex items-center justify-center shadow-md shadow-purple-950/40 shrink-0">
             <Sparkles className="w-3.5 h-3.5 text-purple-200 fill-purple-200" />
           </div>
@@ -652,15 +734,23 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
                 ONDC
               </span>
             </div>
-            <div className="text-[9px] text-neutral-400 flex items-center gap-0.5 truncate">
-              <MapPin className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-              <span className="truncate max-w-[70px]">{currentLocality}</span>
-            </div>
+            <button
+              onClick={handleCheckCurrentLocation}
+              className="text-[9px] text-neutral-400 hover:text-amber-300 flex items-center gap-0.5 truncate cursor-pointer transition-colors"
+              title="Click to check current location via GPS"
+            >
+              {isLocatingUser ? (
+                <Loader2 className="w-2.5 h-2.5 text-sky-400 animate-spin shrink-0" />
+              ) : (
+                <MapPin className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+              )}
+              <span className="truncate max-w-[80px]">{currentLocality}</span>
+            </button>
           </div>
         </div>
 
-        {/* Center: Signature Dual Clock Capsule (Chennai & Riyadh from Image 1 & 2!) */}
-        <div className="hidden min-[360px]:flex items-center bg-[#15202E]/90 border border-sky-900/60 rounded-full px-2 py-0.5 shadow-inner gap-1.5 text-[10px] font-mono shrink min-w-0">
+        {/* Center: Signature Dual Clock Capsule (Only shown when width >= 560px to guarantee NO overlap on mobile screens) */}
+        <div className="hidden min-[560px]:flex items-center bg-[#15202E]/90 border border-sky-900/60 rounded-full px-2.5 py-0.5 shadow-inner gap-2 text-[10px] font-mono shrink-0 mx-auto">
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-[8px] uppercase font-bold text-sky-400">Chennai</span>
             <span className="font-semibold text-sky-100 text-[9px] whitespace-nowrap">{chennaiTime || '12:02 pm'}</span>
@@ -672,8 +762,8 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
           </div>
         </div>
 
-        {/* Right Controls */}
-        <div className="flex items-center gap-1 shrink-0">
+        {/* Right Controls (Carefully spaced buttons with isolated badges) */}
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* Live Mode Toggle (Image 1 & 2 vs Image 3) */}
           <button
             onClick={() => {
@@ -684,7 +774,7 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
                   : '💬 Chat Stream Mode'
               );
             }}
-            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+            className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 ${
               liveVoiceMode
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-400 text-white shadow-md'
                 : 'bg-[#151722] border-neutral-800 text-neutral-400 hover:text-white'
@@ -702,7 +792,7 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
                 !voicePlaybackEnabled ? 'குரல் வாசிப்பு இயக்கப்பட்டது' : 'குரல் முடக்கப்பட்டது'
               );
             }}
-            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+            className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 ${
               voicePlaybackEnabled
                 ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
                 : 'bg-[#151722] border-neutral-800 text-neutral-400 hover:text-white'
@@ -715,13 +805,13 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
           {/* Cart Bag */}
           <button
             onClick={onOpenCart}
-            className="relative p-1.5 rounded-lg bg-[#151722] hover:bg-[#1E2030] border border-neutral-800 text-neutral-200 transition-colors cursor-pointer"
+            className="relative p-1.5 rounded-lg bg-[#151722] hover:bg-[#1E2030] border border-neutral-800 text-neutral-200 transition-colors cursor-pointer shrink-0"
             title="Cart"
           >
             <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-amber-500 text-stone-950 text-[9px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-md">
-                {cartCount}
+              <span className="absolute -top-1 -right-1 bg-amber-500 text-stone-950 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md ring-2 ring-[#0E1017] pointer-events-none">
+                {cartCount > 9 ? '9+' : cartCount}
               </span>
             )}
           </button>
@@ -729,7 +819,7 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1.5 rounded-lg bg-[#151722] hover:bg-[#1E2030] border border-neutral-800 text-neutral-300 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-[#151722] hover:bg-[#1E2030] border border-neutral-800 text-neutral-300 transition-colors cursor-pointer shrink-0"
             title="Menu"
           >
             <MoreVertical className="w-3.5 h-3.5" />
@@ -739,9 +829,21 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
 
       {/* Mobile Menu Drawer / Action Sheet */}
       {menuOpen && (
-        <div className="absolute top-[88px] right-2 z-40 w-56 bg-[#161824] border border-neutral-750 rounded-2xl shadow-2xl p-2.5 space-y-1 animate-fade-in text-xs">
+        <div className="absolute top-[88px] right-2 z-40 w-60 bg-[#161824] border border-neutral-750 rounded-2xl shadow-2xl p-2.5 space-y-1.5 animate-fade-in text-xs">
           <div className="px-2 py-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
             Quick Controls
+          </div>
+
+          {/* Dual Clocks Info Row in Menu */}
+          <div className="px-2.5 py-2 rounded-xl bg-[#10121B] border border-neutral-800 text-neutral-300 space-y-1">
+            <div className="text-[10px] text-neutral-400 font-semibold flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-sky-400" />
+              <span>World Clocks (Dual Zone)</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px] font-mono pt-0.5">
+              <span className="text-sky-300">Chennai: <strong className="text-white">{chennaiTime || '12:02 pm'}</strong></span>
+              <span className="text-sky-300">Riyadh: <strong className="text-white">{riyadhTime || '9:32 am'}</strong></span>
+            </div>
           </div>
           <button
             onClick={() => {
@@ -1082,7 +1184,7 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
                         </div>
                       )}
 
-                      {/* INLINE GOOGLE MAPS / PLACES DARK CARD (matching Image 1 & 3!) */}
+                      {/* INLINE LIVE LEAFLET MAP & NEARBY PRODUCTS */}
                       {msg.places && msg.places.length > 0 && (
                         <div className="w-full pt-1">
                           <ChatMapCard
@@ -1092,6 +1194,18 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
                               showToast(`Selected: ${place.name}`);
                               handleSendMessage(`Tell me more about ${place.name} at ${place.address}`);
                             }}
+                            onCheckLocation={(detectedLocality) => {
+                              onLocalityChange(detectedLocality);
+                              handleSendMessage(`Check popular stores and products around ${detectedLocality}`);
+                            }}
+                            onAddToCart={(prod) => {
+                              onAddToCart(prod, 1);
+                              showToast(`Added ${prod.name} to Cart`);
+                              soundEffects.playOrderSuccess();
+                            }}
+                            likedProductIds={likedProductIds}
+                            onToggleLikeProduct={toggleLikeProduct}
+                            onShowToast={showToast}
                           />
                         </div>
                       )}
@@ -1107,39 +1221,65 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
                           </div>
                           <div className="flex flex-col gap-2">
                             {msg.products.map((prod) => (
-                              <div
+                              <Card
                                 key={prod.id}
-                                className="bg-[#141722] rounded-xl p-2.5 border border-neutral-800 flex gap-2.5 shadow-sm"
+                                className="p-2.5 bg-[#121522] border-neutral-800/90 flex gap-3 shadow-xs hover:border-amber-500/30 transition-all rounded-xl"
                               >
                                 <img
                                   src={prod.imageUrl}
                                   alt={prod.name}
-                                  className="w-14 h-14 rounded-lg object-cover shrink-0 bg-neutral-800"
+                                  className="w-14 h-14 rounded-lg object-cover shrink-0 bg-neutral-800 border border-neutral-700/60"
                                 />
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-bold text-xs text-white truncate">
-                                    {prod.name}
+                                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                  <div>
+                                    <div className="flex items-center justify-between gap-1.5">
+                                      <div className="font-bold text-xs text-white truncate">
+                                        {prod.name}
+                                      </div>
+                                      <Badge variant="ondc" className="shrink-0 text-[8px] py-0 px-1.5">
+                                        ONDC
+                                      </Badge>
+                                    </div>
+                                    <div className="text-[10px] text-neutral-400 truncate mt-0.5">
+                                      {prod.merchantName}
+                                    </div>
                                   </div>
-                                  <div className="text-[10px] text-neutral-400 truncate">
-                                    {prod.merchantName}
-                                  </div>
-                                  <div className="flex items-center justify-between mt-1">
+                                  <div className="flex items-center justify-between mt-1 pt-1 border-t border-white/[0.04]">
                                     <span className="font-display font-bold text-xs text-amber-400 font-mono">
                                       ₹{prod.price}
                                     </span>
-                                    <button
-                                      onClick={() => {
-                                        onAddToCart(prod, 1);
-                                        showToast(`Added ${prod.name} to Cart`);
-                                        soundEffects.playOrderSuccess();
-                                      }}
-                                      className="px-2 py-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-stone-950 font-bold text-[10px] rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-1"
-                                    >
-                                      <span>+ கூடையில் சேர்</span>
-                                    </button>
+                                    <div className="flex items-center gap-1.5">
+                                      <button
+                                        onClick={() => toggleLikeProduct(prod)}
+                                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                          likedProductIds.has(prod.id)
+                                            ? 'bg-rose-500/20 text-rose-500 border-rose-500/40'
+                                            : 'bg-[#181B28] text-neutral-400 hover:text-rose-400 border-neutral-700/70'
+                                        }`}
+                                        title={likedProductIds.has(prod.id) ? 'Unlike' : 'Like product'}
+                                      >
+                                        <Heart
+                                          className={`w-3.5 h-3.5 ${
+                                            likedProductIds.has(prod.id) ? 'fill-rose-500 text-rose-500' : ''
+                                          }`}
+                                        />
+                                      </button>
+                                      <Button
+                                        size="sm"
+                                        variant="default"
+                                        onClick={() => {
+                                          onAddToCart(prod, 1);
+                                          showToast(`Added ${prod.name} to Cart`);
+                                          soundEffects.playOrderSuccess();
+                                        }}
+                                        className="h-7 px-2.5 text-[10px] font-bold shadow-xs"
+                                      >
+                                        <span>+ கூடையில் சேர்</span>
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
+                              </Card>
                             ))}
                           </div>
                         </div>
@@ -1632,60 +1772,72 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
           </div>
 
           {/* 5. BOTTOM MOBILE DOCK (Fixed at bottom with Safe Area) */}
-          <div className="bg-[#0E1017] border-t border-neutral-800/80 p-2 space-y-2 shrink-0 z-20">
+          <div className="bg-[#0E1017] border-t border-neutral-800/80 p-2.5 space-y-2 shrink-0 z-20 shadow-lg">
             {/* Quick Prompt Pill Carousel above input (Image 3) */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px]">
               <button
+                onClick={handleCheckCurrentLocation}
+                disabled={isLocatingUser}
+                className="px-2.5 py-1 bg-gradient-to-r from-sky-950/80 to-indigo-950/80 hover:from-sky-900 hover:to-indigo-900 text-sky-200 border border-sky-600/40 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 font-semibold flex items-center gap-1 shadow-xs active:scale-95"
+              >
+                {isLocatingUser ? (
+                  <Loader2 className="w-3 h-3 text-sky-300 animate-spin" />
+                ) : (
+                  <Crosshair className="w-3 h-3 text-sky-400" />
+                )}
+                <span>📍 Check location & nearby products</span>
+              </button>
+              <button
                 onClick={() => handleSendMessage('Compare the three')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-indigo-300 border border-indigo-900/60 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-indigo-300 border border-indigo-900/50 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 font-medium active:scale-95 shadow-xs"
               >
                 ⚖️ "Compare the three"
               </button>
               <button
                 onClick={() => handleSendMessage('I need milk, bread, and eggs for home')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-emerald-300 border border-emerald-900/60 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-emerald-300 border border-emerald-900/50 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 font-medium active:scale-95 shadow-xs"
               >
                 🥛 "Milk, bread, and eggs"
               </button>
               <button
                 onClick={() => handleSendMessage('Chicken biryani under ₹200')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-amber-300 border border-amber-900/60 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-amber-300 border border-amber-900/50 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 font-medium active:scale-95 shadow-xs"
               >
                 🍛 "Biryani under ₹200"
               </button>
               <button
                 onClick={() => handleSendMessage('Where is my order?')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-sky-300 border border-sky-900/60 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-sky-300 border border-sky-900/50 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 font-medium active:scale-95 shadow-xs"
               >
                 🚚 "Where is my order?"
               </button>
               <button
                 onClick={() => handleSendMessage('Order what I had yesterday')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-purple-300 border border-purple-900/60 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-purple-300 border border-purple-900/50 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 font-medium active:scale-95 shadow-xs"
               >
                 🔁 "Order what I had yesterday"
               </button>
               <button
                 onClick={() => handleSendMessage('My order is late, can you check with rider?')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-rose-300 border border-rose-900/60 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-rose-300 border border-rose-900/50 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 font-medium active:scale-95 shadow-xs"
               >
                 🎧 "My order is late"
               </button>
               <button
                 onClick={() => handleSendMessage('பிரியாணி எங்க நல்லா இருக்கும்?')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-neutral-300 border border-neutral-750 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-neutral-300 border border-neutral-800 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 active:scale-95"
               >
                 "பிரியாணி (Biryani)"
               </button>
               <button
                 onClick={() => handleSendMessage('ஆவின் பால் 2 பாக்கெட்')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-neutral-300 border border-neutral-750 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-neutral-300 border border-neutral-800 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 active:scale-95"
               >
                 "ஆவின் பால்"
               </button>
               <button
                 onClick={() => handleSendMessage('Ah, is there any BMI nearby')}
-                className="px-2.5 py-1 bg-[#181B28] hover:bg-[#222638] text-neutral-300 border border-neutral-750 rounded-full whitespace-nowrap transition-colors cursor-pointer shrink-0"
+                className="px-2.5 py-1 bg-[#141724] hover:bg-[#1C2032] text-neutral-300 border border-neutral-800 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 active:scale-95"
               >
                 "BMI nearby"
               </button>
@@ -1696,13 +1848,13 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
               {/* Plus (+) Button */}
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="w-9 h-9 rounded-full bg-[#181B28] hover:bg-[#222638] border border-neutral-750 text-neutral-300 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                className="w-9 h-9 rounded-xl bg-[#141724] hover:bg-[#1E2235] border border-neutral-800 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs"
                 title="Add options"
               >
                 <Plus className="w-4 h-4" />
               </button>
 
-              {/* Text Input */}
+              {/* Text Input with shadcn focus ring */}
               <div className="flex-1 relative flex items-center">
                 <input
                   type="text"
@@ -1714,7 +1866,7 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
                       ? 'கேளுங்கள் அல்லது தட்டச்சு செய்க...'
                       : 'Ask anything or type message...'
                   }
-                  className="w-full bg-[#141724] border border-neutral-750 text-white placeholder:text-neutral-500 rounded-full pl-3.5 pr-8 py-2 text-xs focus:outline-none focus:border-amber-500 transition-colors shadow-inner"
+                  className="w-full bg-[#12141F] border border-neutral-800 text-white placeholder:text-neutral-500 rounded-xl pl-3.5 pr-8 py-2 text-xs focus:outline-none focus:border-amber-500/80 focus:ring-2 focus:ring-amber-500/20 transition-all shadow-inner"
                   id="mobile-voice-input"
                 />
               </div>
@@ -1722,10 +1874,10 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
               {/* Mic Button */}
               <button
                 onClick={toggleListening}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-md ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-sm active:scale-95 ${
                   isListening
                     ? 'bg-red-500 text-white animate-pulse ring-4 ring-red-500/30'
-                    : 'bg-[#181B28] hover:bg-[#222638] text-amber-400 border border-neutral-750'
+                    : 'bg-[#141724] hover:bg-[#1E2235] text-amber-400 border border-neutral-800'
                 }`}
                 title="Voice mic"
                 id="mobile-mic-btn"
@@ -1733,14 +1885,14 @@ export const VoiceChatSystem: React.FC<VoiceChatSystemProps> = ({
                 {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </button>
 
-              {/* Green Circular Send Button (with Upward Arrow ↑ from Image 3!) */}
+              {/* Green Circular/Rounded Send Button */}
               <button
                 onClick={() => handleSendMessage(inputText)}
                 disabled={!inputText.trim()}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-md ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-sm active:scale-95 ${
                   inputText.trim()
-                    ? 'bg-[#10B981] hover:bg-[#059669] text-stone-950 font-black'
-                    : 'bg-[#181B28] text-neutral-600 border border-neutral-800 cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-stone-950 font-black shadow-emerald-500/20'
+                    : 'bg-[#141724] text-neutral-600 border border-neutral-800 cursor-not-allowed'
                 }`}
                 title="Send"
                 id="mobile-send-btn"

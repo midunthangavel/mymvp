@@ -13,6 +13,10 @@ import {
 } from 'lucide-react';
 import { Order, OrderStatus, LanguageMode } from '../types';
 import { speakText } from '../utils/speechSynthesis';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Separator } from './ui/separator';
 
 interface OrderTrackingModalProps {
   order: Order | null;
@@ -56,40 +60,42 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#131317] rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-neutral-800 text-[#E5E5E5]">
+      <div className="bg-[#12141C] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-neutral-800 text-[#E5E5E5]">
         {/* Header */}
-        <div className="p-5 bg-[#18181D] text-[#F3F4F6] flex items-center justify-between sticky top-0 z-10 border-b border-neutral-800">
+        <div className="p-4 sm:p-5 bg-[#171923] text-[#F3F4F6] flex items-center justify-between sticky top-0 z-20 border-b border-neutral-800">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              <Badge variant="ondc" className="text-[10px] py-0.5 px-2 font-mono">
                 ONDC Ret11 Track
-              </span>
+              </Badge>
               <span className="font-mono text-xs text-neutral-400">#{order.id}</span>
             </div>
-            <h2 className="text-lg font-bold font-display mt-1 text-[#F3F4F6]">
+            <h2 className="text-base sm:text-lg font-bold font-display mt-1 text-[#F3F4F6]">
               நேரலை ஆர்டர் நிலை (Live Order Tracking)
             </h2>
           </div>
 
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#22222A] text-neutral-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800"
             id="close-tracking-modal-btn"
           >
-            <X className="w-4 h-4" />
-          </button>
+            <X className="w-4 h-4 shrink-0" />
+          </Button>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-4 sm:p-5 space-y-4">
           {/* Spoken Voice Status Alert */}
-          <div className="bg-[#18181D] border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-stone-950 flex items-center justify-center shrink-0 font-bold">
-                <Volume2 className="w-4 h-4" />
+          <Card className="bg-[#181B26] border-amber-500/30 p-3.5 flex items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-stone-950 flex items-center justify-center shrink-0 font-bold shadow-xs">
+                <Volume2 className="w-4 h-4 shrink-0" />
               </div>
-              <div>
-                <div className="text-xs font-bold text-amber-300">குரல் தகவல் (Voice Notification)</div>
-                <div className="text-xs text-neutral-300">
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-amber-300 truncate">குரல் தகவல் (Voice Notification)</div>
+                <div className="text-xs text-neutral-300 truncate">
                   {order.orderStatus === 'OUT_FOR_DELIVERY'
                     ? 'ரைடர் 2 கி.மீ தொலைவில் உள்ளார், ETA 12 நிமிடங்கள்'
                     : order.orderStatus === 'DELIVERED'
@@ -98,32 +104,34 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                 </div>
               </div>
             </div>
-            <button
+            <Button
+              size="sm"
+              variant="default"
               onClick={handleSpeakStatus}
-              className="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-stone-950 rounded-lg text-xs font-bold shrink-0 transition-colors cursor-pointer"
+              className="h-8 px-3 text-xs font-bold shrink-0"
               id="speak-order-status-btn"
             >
               கேட்கவும்
-            </button>
-          </div>
+            </Button>
+          </Card>
 
-          {/* Rider Status Card (Section 8.4) */}
+          {/* Rider Status Card */}
           {order.orderStatus === 'OUT_FOR_DELIVERY' && order.rider && (
-            <div className="bg-[#1C1814] border border-amber-800/40 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-stone-950 flex items-center justify-center font-bold">
-                    <Bike className="w-5 h-5" />
+            <Card className="bg-[#1C1814] border-amber-800/40 p-4 space-y-3 shadow-md">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-stone-950 flex items-center justify-center shrink-0 font-bold shadow-xs">
+                    <Bike className="w-5 h-5 shrink-0" />
                   </div>
-                  <div>
-                    <div className="text-xs font-bold font-display text-[#F3F4F6]">{order.rider.name}</div>
-                    <div className="text-[11px] text-neutral-400 font-mono">
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold font-display text-[#F3F4F6] truncate">{order.rider.name}</div>
+                    <div className="text-[11px] text-neutral-400 font-mono truncate">
                       {order.rider.vehicleNumber} (Shadowfax/Dunzo)
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-extrabold text-amber-400">
+                <div className="text-right shrink-0">
+                  <div className="text-xs font-extrabold text-amber-400 font-mono">
                     {order.rider.distanceKm} km தூரம்
                   </div>
                   <div className="text-[11px] font-bold text-neutral-400">
@@ -131,43 +139,48 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-amber-800/30 text-xs">
-                <span className="text-neutral-400 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                  <span>கிராஸ்கட் ரோடு வழியாக வருகிறார்</span>
+
+              <Separator className="bg-amber-800/30" />
+
+              <div className="flex items-center justify-between text-xs gap-2">
+                <span className="text-neutral-400 flex items-center gap-1 min-w-0 truncate">
+                  <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">கிராஸ்கட் ரோடு வழியாக வருகிறார்</span>
                 </span>
                 <a
                   href={`tel:${order.rider.phone}`}
-                  className="text-amber-300 font-bold flex items-center gap-1 bg-[#251A14] px-2.5 py-1 rounded-lg border border-amber-700/40 hover:bg-[#30221A] transition-colors"
+                  className="text-amber-300 font-bold flex items-center gap-1 bg-[#251A14] px-2.5 py-1 rounded-lg border border-amber-700/40 hover:bg-[#30221A] transition-colors shrink-0"
                 >
-                  <Phone className="w-3 h-3" />
+                  <Phone className="w-3 h-3 shrink-0" />
                   <span>அழைக்கவும்</span>
                 </a>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* RTO Failure notice (if simulated) */}
           {order.orderStatus === 'RTO_FAILED' && (
-            <div className="bg-[#241316] border border-rose-800/50 rounded-2xl p-4 text-xs text-rose-200">
-              <div className="flex items-center gap-2 font-bold mb-1 text-rose-300">
-                <AlertTriangle className="w-4 h-4 text-rose-400" />
+            <Card className="bg-[#241316] border-rose-800/50 p-4 text-xs text-rose-200 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-rose-300">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
                 <span>டெலிவரி தோல்வி - பார்சல் திரும்பியது (RTO Issue)</span>
               </div>
-              <p className="text-rose-200/80 mb-2 leading-relaxed">
+              <p className="text-rose-200/80 leading-relaxed">
                 ரைடர் உங்கள் இடத்தை அடைய முடியாமல் திரும்பியுள்ளார். ONDC நெட்வொர்க் வழியாக புதிய ஆர்டர் மாற்று அல்லது முழு தொகை திரும்ப வழங்கல் ஏற்பாடு செய்யப்படுகிறது.
               </p>
-              <button
+              <Button
+                variant="destructive"
+                size="sm"
                 onClick={() => onOpenDispute(order)}
-                className="px-3 py-1.5 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 transition-colors cursor-pointer"
+                className="font-bold text-xs"
               >
                 உடனடி ரீஃபண்ட் பெறுக (Claim Refund)
-              </button>
-            </div>
+              </Button>
+            </Card>
           )}
 
-          {/* Status Timeline (Exact Section 8.4 Spec) */}
-          <div className="border border-neutral-800 rounded-2xl p-4 bg-[#18181D]/60">
+          {/* Status Timeline */}
+          <Card className="border-neutral-800 p-4 bg-[#161822]/70 shadow-sm">
             <h4 className="font-display font-bold text-[#F3F4F6] text-xs mb-3 uppercase tracking-wider">
               ஆர்டர் முன்னேற்றம் (Status Timeline)
             </h4>
@@ -182,14 +195,14 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                     {/* Connecting line */}
                     {idx < order.statusTimeline.length - 1 && (
                       <div
-                        className={`absolute left-3.5 top-6 bottom--3 w-0.5 ${
+                        className={`absolute left-3.5 top-7 -bottom-4 w-0.5 z-0 ${
                           isPassed ? 'bg-amber-500/70' : 'bg-neutral-800'
                         }`}
                       />
                     )}
 
                     <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-1 text-xs font-bold ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-[1] text-xs font-bold ${
                         isCurrent
                           ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-stone-950 ring-4 ring-amber-500/20 animate-pulse'
                           : isPassed
@@ -200,20 +213,20 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                       {isPassed ? '✓' : idx + 1}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-center justify-between gap-1">
                         <span
-                          className={`text-xs font-bold ${
+                          className={`text-xs font-bold truncate ${
                             isCurrent ? 'text-amber-400 font-display' : 'text-[#F3F4F6]'
                           }`}
                         >
                           {language === 'ta' ? step.tamilLabel : step.label}
                         </span>
-                        <span className="text-[10px] text-neutral-400 font-mono">
+                        <span className="text-[10px] text-neutral-400 font-mono shrink-0">
                           {step.timestamp}
                         </span>
                       </div>
-                      <div className="text-[11px] text-neutral-400 font-medium">
+                      <div className="text-[11px] text-neutral-400 font-medium truncate">
                         {language === 'ta' ? step.label : step.tamilLabel}
                       </div>
                     </div>
@@ -221,56 +234,62 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                 );
               })}
             </div>
-          </div>
+          </Card>
 
           {/* Order Item Summary */}
-          <div className="bg-[#18181D] rounded-2xl p-4 border border-neutral-800 text-xs space-y-2">
+          <Card className="bg-[#161822] p-4 border-neutral-800 text-xs space-y-2">
             <div className="flex justify-between font-bold text-[#F3F4F6] pb-1 border-b border-neutral-800">
-              <span className="font-display">{order.merchantName}</span>
-              <span className="text-amber-400 font-bold font-display">மொத்தம்: ₹{order.total}</span>
+              <span className="font-display truncate">{order.merchantName}</span>
+              <span className="text-amber-400 font-bold font-display font-mono shrink-0">மொத்தம்: ₹{order.total}</span>
             </div>
             {order.items.map((item) => (
-              <div key={item.product.id} className="flex justify-between text-neutral-400">
-                <span>
+              <div key={item.product.id} className="flex justify-between text-neutral-400 text-[11px]">
+                <span className="truncate pr-2">
                   {item.quantity} × {item.product.name}
                 </span>
-                <span className="text-neutral-200">₹{item.product.price * item.quantity}</span>
+                <span className="text-neutral-200 font-mono shrink-0">₹{item.product.price * item.quantity}</span>
               </div>
             ))}
-          </div>
+          </Card>
 
           {/* Simulation & Edge Case Buttons */}
           <div className="pt-2 border-t border-neutral-800 space-y-2">
-            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">
               சோதனை கட்டுப்பாடுகள் (Simulations & Support):
             </span>
             <div className="flex flex-wrap gap-2">
-              <button
+              <Button
+                size="sm"
+                variant="default"
                 onClick={() => onAdvanceStatus(order.id)}
-                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-stone-950 font-bold text-xs shadow-md flex items-center gap-1.5 cursor-pointer transition-all"
+                className="gap-1.5 text-xs font-bold"
                 id="advance-order-step-btn"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-3.5 h-3.5 shrink-0" />
                 <span>அடுத்த நிலைக்கு நகர்த்து (Next Stage)</span>
-              </button>
+              </Button>
 
-              <button
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => onTriggerRTO(order.id)}
-                className="px-3 py-1.5 rounded-xl bg-[#251A14] text-amber-300 border border-amber-800/50 font-bold text-xs hover:bg-[#30221A] flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="bg-[#251A14] text-amber-300 border-amber-800/50 hover:bg-[#30221A] gap-1.5 text-xs font-bold"
                 id="simulate-rto-btn"
               >
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>Simulate Rider RTO</span>
-              </button>
+              </Button>
 
-              <button
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => onOpenDispute(order)}
-                className="px-3 py-1.5 rounded-xl bg-[#1F162A] text-purple-300 border border-purple-800/50 font-bold text-xs hover:bg-[#2A1E38] flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="bg-[#1F162A] text-purple-300 border-purple-800/50 hover:bg-[#2A1E38] gap-1.5 text-xs font-bold"
                 id="open-igm-dispute-btn"
               >
-                <HelpCircle className="w-3.5 h-3.5 text-purple-400" />
+                <HelpCircle className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                 <span>ONDC IGM புகார் (Dispute)</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>

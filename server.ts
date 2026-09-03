@@ -316,6 +316,61 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', service: 'VoiceCart AI 2.0 Buyer App', timestamp: new Date().toISOString() });
 });
 
+// 1.2 Reverse Geocode endpoint for Live Map GPS location check
+app.get('/api/reverse-geocode', async (req: Request, res: Response) => {
+  const lat = parseFloat(req.query.lat as string);
+  const lng = parseFloat(req.query.lng as string);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    return res.status(400).json({ error: 'Valid lat and lng required' });
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    const geoUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+    const response = await fetch(geoUrl, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'VoiceCart-AI/2.0 (contact: info@voicecart.ai)' }
+    });
+    clearTimeout(timer);
+    const data: any = await response.json();
+    const addr = data?.address || {};
+    const locality = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter || addr.city_district || addr.town || addr.village || 'Your Location';
+    const city = addr.city || addr.town || addr.county || 'Tamil Nadu';
+    const displayName = `${locality}, ${city}`;
+
+    return res.json({
+      locality,
+      city,
+      displayName,
+      lat,
+      lng
+    });
+  } catch {
+    // Coordinate range fallback
+    let locality = 'Gandhipuram';
+    let city = 'Coimbatore';
+    if (lat > 12.5 && lat < 13.5 && lng > 79.8 && lng < 80.5) {
+      city = 'Chennai';
+      locality = lat > 13.06 ? 'Anna Nagar' : 'Vadapalani';
+    } else if (lat > 10.8 && lat < 11.2 && lng > 76.8 && lng < 77.2) {
+      city = 'Coimbatore';
+      if (lng > 76.98) locality = 'Peelamedu';
+      else if (lat < 11.01) locality = 'RS Puram';
+      else locality = 'Gandhipuram';
+    }
+
+    return res.json({
+      locality,
+      city,
+      displayName: `${locality}, ${city}`,
+      lat,
+      lng
+    });
+  }
+});
+
 // 1.5 Chat Assistant API (Voice-first conversational backend)
 app.post('/api/chat', async (req: Request, res: Response) => {
   const startTime = Date.now();
@@ -787,6 +842,17 @@ Respond strictly in JSON:
         };
       });
 
+      // Attach relevant products directly to each place for the live map
+      enrichedPlaces.forEach((place: any, pIdx: number) => {
+        const matching = enrichedProducts.filter((pr: any) => pr.merchantName.toLowerCase() === place.name.toLowerCase());
+        if (matching.length > 0) {
+          place.products = matching;
+        } else {
+          const slice = enrichedProducts.slice(pIdx * 2, pIdx * 2 + 2);
+          place.products = slice.length > 0 ? slice : enrichedProducts.slice(0, 2);
+        }
+      });
+
       const sourcesList = webSearchResults.length > 0 
         ? ['Live Web Search', ...webSearchResults.map(s => s.url)]
         : ['ONDC Network Live Discovery', 'Verified Local Merchants', 'Google Places'];
@@ -994,6 +1060,19 @@ Respond strictly in JSON:
     fallbackTamil = `${location} பகுதியில் உணவு, மளிகை மற்றும் கடைகளைத் தேட நான் உங்களுக்கு உதவத் தயார். என்ன வேண்டும் என்று கூறுங்கள்!`;
     fallbackPlaces = [];
     fallbackProducts = [];
+  }
+
+  // Ensure fallbackPlaces have their products attached
+  if (fallbackPlaces.length > 0 && fallbackProducts.length > 0) {
+    fallbackPlaces.forEach((place: any) => {
+      place.products = fallbackProducts.filter((pr: any) => 
+        (pr.merchantId && pr.merchantId === place.id) ||
+        (pr.merchantName && pr.merchantName.toLowerCase() === place.name.toLowerCase())
+      );
+      if (!place.products || place.products.length === 0) {
+        place.products = fallbackProducts.slice(0, 2);
+      }
+    });
   }
 
   res.json({

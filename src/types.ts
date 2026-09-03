@@ -209,6 +209,7 @@ export interface ChatPlace {
   description?: string;
   imageUrl?: string;
   fssaiNumber?: string;
+  products?: ProductItem[];
 }
 
 export interface ComparisonRow {
