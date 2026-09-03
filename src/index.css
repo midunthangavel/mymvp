@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Syne', 'Cinzel', sans-serif;
+    --font-sans: 'Plus Jakarta Sans', 'Noto Sans Tamil', sans-serif;
+  }
+
+  body {
+    background-color: #0D0D0D;
+    color: #E5E5E5;
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* Audio Visualizer Waveform Animations (for Gemini Live Voice Pill from Image 1 & 2) */
+@keyframes soundwave-1 {
+  0%, 100% { height: 6px; }
+  50% { height: 22px; }
+}
+
+@keyframes soundwave-2 {
+  0%, 100% { height: 16px; }
+  50% { height: 28px; }
+}
+
+@keyframes soundwave-3 {
+  0%, 100% { height: 22px; }
+  50% { height: 10px; }
+}
+
+@keyframes soundwave-4 {
+  0%, 100% { height: 10px; }
+  50% { height: 26px; }
+}
+
+@keyframes soundwave-5 {
+  0%, 100% { height: 18px; }
+  50% { height: 8px; }
+}
+
+.animate-wave-1 {
+  animation: soundwave-1 0.8s ease-in-out infinite;
+}
+.animate-wave-2 {
+  animation: soundwave-2 0.65s ease-in-out infinite 0.15s;
+}
+.animate-wave-3 {
+  animation: soundwave-3 0.9s ease-in-out infinite 0.3s;
+}
+.animate-wave-4 {
+  animation: soundwave-4 0.7s ease-in-out infinite 0.2s;
+}
+.animate-wave-5 {
+  animation: soundwave-5 0.85s ease-in-out infinite 0.4s;
+}
+
+/* Custom Artistic Flair Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #121214;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a30;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3e3e48;
+}
+
+/* Artistic Ember & Aurora Glows */
+.artistic-glow {
+  box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.15);
+}
+
+.artistic-border {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.artistic-border-hover:hover {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.artistic-glass {
+  background: rgba(20, 20, 24, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}

@@ -1,0 +1,6 @@
+{
+  "name": "VoiceCart AI 2.0",
+  "description": "Tamil-first, voice-first local commerce assistant for food, bakeries, and groceries integrated with ONDC and Gemini AI.",
+  "requestFramePermissions": ["microphone", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
